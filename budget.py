@@ -94,9 +94,86 @@ class Budget:
         self.db_cursor.execute(list_all_history_q)
         return self.db_cursor.fetchall()
 
-    def list_history_filter(self, accounts=None, charge_begin=None, charge_end=None, date_begin=None, date_end=None,
-                            from_to=None, has_file=None, notes_contains=None):
-        pass
+    def list_history_filter(self, accounts=None, from_to=None, charge_begin=None, charge_end=None,
+                            date_begin=None, date_end=None, has_file=None, notes_contains=None):
+
+        list_history_q = "SELECT * FROM history "
+
+        filters = 0
+
+        condition = ""
+
+        if accounts is not None:
+            filters += 1
+            if filters > 1:
+                condition += "AND "
+
+            if from_to is None:
+                condition += "(account_from IN ("
+                for account in accounts:
+                    condition += "\"%s\", " % account
+                condition = condition[:-2]
+                condition += ") OR account_to IN ("
+                for account in accounts:
+                    condition += "\"%s\", " % account
+                condition = condition[:-2]
+                condition += ")) "
+            elif from_to == "from":
+                condition += "account_from IN ("
+                for account in accounts:
+                    condition += "\"%s\", " % account
+                condition = condition[:-2]
+                condition += ") "
+            elif from_to == "to":
+                condition += "account_to IN ("
+                for account in accounts:
+                    condition += "\"%s\"" % account
+                condition += ") "
+
+        if charge_begin is not None:
+            filters += 1
+            if filters > 1:
+                condition += "AND "
+            condition += "charge >= %s " % charge_begin
+
+        if charge_end is not None:
+            filters += 1
+            if filters > 1:
+                condition += "AND "
+            condition += "charge <= %s " % charge_end
+
+        if date_begin is not None:
+            filters += 1
+            if filters > 1:
+                condition += "AND "
+            condition += "date >= \"%s\" " % date_begin.strftime("%Y-%m-%d")
+
+        if date_end is not None:
+            filters += 1
+            if filters > 1:
+                condition += "AND "
+            condition += "date <= \"%s\" " % date_end.strftime("%Y-%m-%d")
+
+        if has_file is not None:
+            filters += 1
+            if filters > 1:
+                condition += "AND "
+            condition += "file_size <> 0 "
+
+        if notes_contains is not None:
+            filters += 1
+            if filters > 1:
+                condition += "AND "
+            condition += "notes LIKE \"%%%s%%\"" % notes_contains.lower()
+
+        if filters != 0:
+            condition = "WHERE " + condition
+
+        list_history_q = list_history_q + condition
+
+        print(list_history_q)
+        self.db_cursor.execute(list_history_q)
+        return self.db_cursor.fetchall()
 
     def account_exists(self, name):
 
@@ -182,13 +259,16 @@ if __name__ == "__main__":
     print("Budget Unit Tests...")
 
     b = Budget()
-    # b.add_account("test2", 100.00)
+    # b.add_account("test5", 500.00)
     print(b.list_accounts())
 
     t = Transaction()
-    t.from_new("test2", 50.00, datetime.datetime(2018, 05, 20), account_to="test")
-    b.make_transaction(t)
-    print(b.list_accounts())
+    # t.from_new("test5", 100.00, datetime.datetime(2017, 07, 8), account_to="test")
+    # b.make_transaction(t)
+    # print(b.list_accounts())
     print(b.list_all_history())
+    # b.db_cursor.execute("SELECT * FROM history WHERE account_from IN ('test3', 'test5') OR account_to IN ('test3', 'test5');")
+    # print(b.db_cursor.fetchall())
 
+    print(b.list_history_filter(accounts=['test3', 'test5'], charge_begin=75, charge_end=125, date_begin=datetime.datetime(2017, 1, 1), date_end=datetime.datetime.now()))
 
