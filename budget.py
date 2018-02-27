@@ -92,13 +92,6 @@ class Budget:
         self.db_cursor.execute(list_accounts_q)
         return self.db_cursor.fetchall()
 
-    def list_all_history(self):
-        list_all_history_q = """
-        SELECT * FROM history
-        """
-        self.db_cursor.execute(list_all_history_q)
-        return self.db_cursor.fetchall()
-
     def list_history_filter(self, accounts=None, from_to=None, charge_begin=None, charge_end=None,
                             date_begin=None, date_end=None, has_file=None, notes_contains=None):
 
