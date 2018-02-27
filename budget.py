@@ -16,7 +16,7 @@ class Transaction:
     def __init__(self):
 
         self.data = {}
-        self.fields = ["id", "account_from", "charge", "date", "account_to", "notes",
+        self.fields = ["id", "account_from", "charge", "date", "notes", "account_to",
                        "file_name", "file_size", "file_data"]
         for key in self.fields:
             self.data[key] = None
@@ -37,8 +37,8 @@ class Transaction:
 
     def from_db(self, db_tuple):
 
-        for key, value in (self.fields, db_tuple):
-            print("%s:%s\n" % (key, value))
+        for key, value in zip(self.fields, db_tuple):
+            self.data[key] = value
 
     def get_accounts(self):
         return self.data["account_from"], self.data["account_to"]
@@ -56,6 +56,11 @@ class Transaction:
 
     def as_dict(self):
         return self.data
+
+    def __str__(self):
+        return "id: %s, account_from: %s, account_to: %s, charge: %f, date: %s, file_name: %s, notes: %s"\
+               % (self.data["id"], self.data["account_from"], self.data["account_to"], self.data["charge"],
+                  self.data["date"], self.data["file_name"], self.data["notes"])
 
 
 class Budget:
@@ -171,9 +176,15 @@ class Budget:
 
         list_history_q = list_history_q + condition
 
-        print(list_history_q)
         self.db_cursor.execute(list_history_q)
-        return self.db_cursor.fetchall()
+        results = self.db_cursor.fetchall()
+        transactions = []
+        for result in results:
+            transaction = Transaction()
+            transaction.from_db(result)
+            transactions.append(transaction)
+
+        return transactions
 
     def account_exists(self, name):
 
@@ -259,16 +270,36 @@ if __name__ == "__main__":
     print("Budget Unit Tests...")
 
     b = Budget()
-    # b.add_account("test5", 500.00)
-    print(b.list_accounts())
+    try:
+        b.add_account("test1", 100.00)
+        b.add_account("test2", 200.00)
+        b.add_account("test3", 300.00)
+        b.add_account("test4", 400.00)
 
-    t = Transaction()
-    # t.from_new("test5", 100.00, datetime.datetime(2017, 07, 8), account_to="test")
-    # b.make_transaction(t)
-    # print(b.list_accounts())
-    print(b.list_all_history())
-    # b.db_cursor.execute("SELECT * FROM history WHERE account_from IN ('test3', 'test5') OR account_to IN ('test3', 'test5');")
-    # print(b.db_cursor.fetchall())
+        b.list_accounts()
+        t = Transaction()
+        t.from_new("test4", 100, datetime.datetime(2017, 1, 5), account_to="test1")
+        b.make_transaction(t)
 
-    print(b.list_history_filter(accounts=['test3', 'test5'], charge_begin=75, charge_end=125, date_begin=datetime.datetime(2017, 1, 1), date_end=datetime.datetime.now()))
+        b.list_accounts()
+        t = Transaction()
+        t.from_new("test3", 50, datetime.datetime(2017, 1, 20), account_to="test1")
+        b.make_transaction(t)
+
+        b.list_accounts()
+        t = Transaction()
+        t.from_new("test2", 25, datetime.datetime(2017, 2, 14), account_to="test4", notes="vday")
+        b.make_transaction(t)
+
+        b.list_accounts()
+        t = Transaction()
+        t.from_new("test4", 200, datetime.datetime(2017, 3, 2), notes="spent!")
+        b.make_transaction(t)
+        b.list_accounts()
+    except BudgetError as e:
+        print(e)
+
+    transactions = b.list_history_filter(notes_contains="!")
+    for transaction in transactions:
+        print(str(transaction))
 
