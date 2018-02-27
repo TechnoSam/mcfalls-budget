@@ -16,20 +16,23 @@ class Transaction:
     def __init__(self):
 
         self.data = {}
-        self.fields = ["id", "account_from", "charge", "date", "notes", "account_to",
+        self.fields = ["id", "charge", "date", "account_from", "account_to", "notes",
                        "file_name", "file_size", "file_data"]
         for key in self.fields:
             self.data[key] = None
 
-    def from_new(self, account_from, charge, date,
-                 account_to="", notes="", file_name="", file_type="", file_size=0, file_data=""):
+    def from_new(self, charge, date, account_from="", account_to="",
+                 notes="", file_name="", file_type="", file_size=0, file_data=""):
+
+        if account_from == "" and account_to == "":
+            raise BudgetError("Account from and account to cannot both be empty")
 
         self.data["id"] = "NULL"
-        self.data["account_from"] = account_from
         self.data["charge"] = charge
         self.data["date"] = date.strftime("%Y-%m-%d")
-        self.data["notes"] = notes
+        self.data["account_from"] = account_from
         self.data["account_to"] = account_to
+        self.data["notes"] = notes
         self.data["file_name"] = file_name
         self.data["file_type"] = file_type
         self.data["file_size"] = file_size
@@ -271,28 +274,28 @@ if __name__ == "__main__":
 
         b.list_accounts()
         t = Transaction()
-        t.from_new("test4", 100, datetime.datetime(2017, 1, 5), account_to="test1")
+        t.from_new(100, datetime.datetime(2017, 1, 5), account_from="test4", account_to="test1")
         b.make_transaction(t)
 
         b.list_accounts()
         t = Transaction()
-        t.from_new("test3", 50, datetime.datetime(2017, 1, 20), account_to="test1")
+        t.from_new(50, datetime.datetime(2017, 1, 20), account_from="test3", account_to="test1")
         b.make_transaction(t)
 
         b.list_accounts()
         t = Transaction()
-        t.from_new("test2", 25, datetime.datetime(2017, 2, 14), account_to="test4", notes="vday")
+        t.from_new(25, datetime.datetime(2017, 2, 14), account_from="test2", account_to="test4", notes="vday")
         b.make_transaction(t)
 
         b.list_accounts()
         t = Transaction()
-        t.from_new("test4", 200, datetime.datetime(2017, 3, 2), notes="spent!")
+        t.from_new(200, datetime.datetime(2017, 3, 2), account_from="test4", notes="spent!")
+
         b.make_transaction(t)
         b.list_accounts()
     except BudgetError as e:
         print(e)
 
-    transactions = b.list_history_filter(notes_contains="!")
+    transactions = b.list_history_filter()
     for transaction in transactions:
         print(str(transaction))
-

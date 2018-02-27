@@ -25,11 +25,11 @@ if __name__ == "__main__":
     init_sql = """
     CREATE TABLE history (
     id INTEGER PRIMARY KEY,
-    account_from NVARCHAR,
     charge DOUBLE,
     date DATE,
-    notes NVARCHAR,
+    account_from NVARCHAR,
     account_to NVARCHAR,
+    notes NVARCHAR,
     file_name NVARCHAR,
     file_type NVARCHAR,
     file_size INTEGER,
