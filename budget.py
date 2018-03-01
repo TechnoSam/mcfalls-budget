@@ -61,7 +61,7 @@ class Transaction:
         return self.data
 
     def __str__(self):
-        return "id: %s, account_from: %s, account_to: %s, charge: %f, date: %s, file_name: %s, notes: %s"\
+        return "id: %7s, account_from: %20s, account_to: %20s, charge: %7.2f, date: %s, file_name: %30s, notes: %s"\
                % (self.data["id"], self.data["account_from"], self.data["account_to"], self.data["charge"],
                   self.data["date"], self.data["file_name"], self.data["notes"])
 
@@ -128,7 +128,8 @@ class Budget:
             elif from_to == "to":
                 condition += "account_to IN ("
                 for account in accounts:
-                    condition += "\"%s\"" % account
+                    condition += "\"%s\", " % account
+                condition = condition[:-2]
                 condition += ") "
 
         if charge_begin is not None:
@@ -228,16 +229,21 @@ class Budget:
         account_to = transaction.get_accounts()[1]
         charge = transaction.get_charge()
 
-        if not self.account_exists(account_from):
+        # Both accounts cannot be empty, guaranteed by transaction creation, but we can recheck
+        if account_from == "" and account_to == "":
+            raise BudgetError("Sam sucks! Somehow we have a transaction with no accounts!")
+
+        if account_from != "" and not self.account_exists(account_from):
             raise BudgetError("Account from %s does not exist" % account_from)
         if account_to != "" and not self.account_exists(account_to):
             raise BudgetError("Account to %s does not exist" % account_to)
         if charge == 0.00:
             raise BudgetError("Charge cannot be $0.00")
 
-        account_from_balance = self.get_account_balance(account_from)
-        account_from_balance -= charge
-        self.__set_account_balance(account_from, account_from_balance)
+        if account_from != "":
+            account_from_balance = self.get_account_balance(account_from)
+            account_from_balance -= charge
+            self.__set_account_balance(account_from, account_from_balance)
 
         if account_to != "":
             account_to_balance = self.get_account_balance(account_to)
@@ -267,34 +273,83 @@ if __name__ == "__main__":
 
     b = Budget()
     try:
-        b.add_account("test1", 100.00)
-        b.add_account("test2", 200.00)
-        b.add_account("test3", 300.00)
-        b.add_account("test4", 400.00)
+        b.add_account("Bank", 0.00)
+        b.add_account("Groceries", 0.00)
+        b.add_account("Sam Allowance", 0.00)
+        b.add_account("Amanda Allowance", 0.00)
 
-        b.list_accounts()
+        print(b.list_accounts())
+
         t = Transaction()
-        t.from_new(100, datetime.datetime(2017, 1, 5), account_from="test4", account_to="test1")
+        t.from_new(1983.03, datetime.datetime(2016, 12, 15), account_to="Bank", notes="Paycheck 1232")
         b.make_transaction(t)
 
-        b.list_accounts()
         t = Transaction()
-        t.from_new(50, datetime.datetime(2017, 1, 20), account_from="test3", account_to="test1")
+        t.from_new(1983.03, datetime.datetime(2017, 1, 1), account_to="Bank", notes="Paycheck 1233")
         b.make_transaction(t)
 
-        b.list_accounts()
-        t = Transaction()
-        t.from_new(25, datetime.datetime(2017, 2, 14), account_from="test2", account_to="test4", notes="vday")
+        t.from_new(300, datetime.datetime(2017, 1, 1), account_from="Bank", account_to="Groceries")
         b.make_transaction(t)
 
-        b.list_accounts()
         t = Transaction()
-        t.from_new(200, datetime.datetime(2017, 3, 2), account_from="test4", notes="spent!")
-
+        t.from_new(300, datetime.datetime(2017, 1, 1), account_from="Bank", account_to="Sam Allowance")
         b.make_transaction(t)
-        b.list_accounts()
+
+        t = Transaction()
+        t.from_new(300, datetime.datetime(2017, 1, 1), account_from="Bank", account_to="Amanda Allowance")
+        b.make_transaction(t)
+
+        print(b.list_accounts())
+
+        t = Transaction()
+        t.from_new(39.99, datetime.datetime(2017, 1, 4), account_from="Sam Allowance", notes="Overwatch Lootboxes")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(29.99, datetime.datetime(2017, 1, 8), account_from="Amanda Allowance", notes="Makeup from Ulta")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(142.78, datetime.datetime(2017, 1, 14), account_from="Groceries", notes="Food Lion")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(1983.03, datetime.datetime(2017, 1, 15), account_to="Bank", notes="Paycheck 1234")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(12.99, datetime.datetime(2017, 1, 22), account_from="Sam Allowance", notes="RWBY Vol 5 Soundtrack")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(158.25, datetime.datetime(2017, 1, 28), account_from="Groceries", notes="Giant Food")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(1983.03, datetime.datetime(2017, 2, 1), account_to="Bank", notes="Paycheck 1235")
+        b.make_transaction(t)
+
+        t.from_new(300, datetime.datetime(2017, 2, 1), account_from="Bank", account_to="Groceries")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(300, datetime.datetime(2017, 2, 1), account_from="Bank", account_to="Sam Allowance")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(300, datetime.datetime(2017, 2, 1), account_from="Bank", account_to="Amanda Allowance")
+        b.make_transaction(t)
+
+        t = Transaction()
+        t.from_new(149.99, datetime.datetime(2017, 2, 3), account_from="Amanda Allowance", notes="Kate Spade Purse")
+        b.make_transaction(t)
+
+        print(b.list_accounts())
+
     except BudgetError as e:
         print(e)
+
+    print(b.list_accounts())
 
     transactions = b.list_history_filter()
     for transaction in transactions:
