@@ -30,10 +30,7 @@ if __name__ == "__main__":
     account_from NVARCHAR,
     account_to NVARCHAR,
     notes NVARCHAR,
-    file_name NVARCHAR,
-    file_type NVARCHAR,
-    file_size INTEGER,
-    file_data IMAGE);
+    files NVARCHAR);
     """
 
     try:

@@ -3,6 +3,8 @@
 
 import sqlite3
 import datetime
+import os.path
+from os import makedirs
 
 DB_NAME = "budget.db"
 
@@ -17,12 +19,12 @@ class Transaction:
 
         self.data = {}
         self.fields = ["id", "charge", "date", "account_from", "account_to", "notes",
-                       "file_name", "file_size", "file_data"]
+                       "files"]
         for key in self.fields:
             self.data[key] = None
 
     def from_new(self, charge, date, account_from="", account_to="",
-                 notes="", file_name="", file_type="", file_size=0, file_data=""):
+                 notes="", files=""):
 
         if account_from == "" and account_to == "":
             raise BudgetError("Account from and account to cannot both be empty")
@@ -33,10 +35,7 @@ class Transaction:
         self.data["account_from"] = account_from
         self.data["account_to"] = account_to
         self.data["notes"] = notes
-        self.data["file_name"] = file_name
-        self.data["file_type"] = file_type
-        self.data["file_size"] = file_size
-        self.data["file_data"] = file_data
+        self.data["files"] = files
 
     def from_db(self, db_tuple):
 
@@ -48,6 +47,24 @@ class Transaction:
 
     def get_charge(self):
         return self.data["charge"]
+
+    def set_charge(self, charge):
+        self.data["charge"] = charge
+
+    def get_files(self):
+        return [x.strip() for x in self.data["files"].split(",")]
+
+    def get_date(self):
+        return self.data["date"]
+
+    def get_year(self):
+        return self.data["date"].split("-")[0]
+
+    def get_month(self):
+        return self.data["date"].split("-")[1]
+
+    def get_day(self):
+        return self.data["date"].split("-")[2]
 
     def as_tuple(self):
 
@@ -61,9 +78,9 @@ class Transaction:
         return self.data
 
     def __str__(self):
-        return "id: %7s, account_from: %20s, account_to: %20s, charge: %7.2f, date: %s, file_name: %30s, notes: %s"\
+        return "id: %7s, account_from: %20s, account_to: %20s, charge: %7.2f, date: %s, files: %30s, notes: %s"\
                % (self.data["id"], self.data["account_from"], self.data["account_to"], self.data["charge"],
-                  self.data["date"], self.data["file_name"], self.data["notes"])
+                  self.data["date"], self.data["files"], self.data["notes"])
 
 
 class Budget:
@@ -96,7 +113,7 @@ class Budget:
         return self.db_cursor.fetchall()
 
     def list_history_filter(self, accounts=None, from_to=None, charge_begin=None, charge_end=None,
-                            date_begin=None, date_end=None, has_file=None, notes_contains=None):
+                            date_begin=None, date_end=None, notes_contains=None):
 
         list_history_q = "SELECT * FROM history "
 
@@ -155,12 +172,6 @@ class Budget:
             if filters > 1:
                 condition += "AND "
             condition += "date <= \"%s\" " % date_end.strftime("%Y-%m-%d")
-
-        if has_file is not None:
-            filters += 1
-            if filters > 1:
-                condition += "AND "
-            condition += "file_size <> 0 "
 
         if notes_contains is not None:
             filters += 1
@@ -223,7 +234,7 @@ class Budget:
         self.db_cursor.execute(account_balance_cmd)
         self.db_conn.commit()
 
-    def make_transaction(self, transaction):
+    def make_transaction(self, transaction, file_data=list()):
 
         account_from = transaction.get_accounts()[0]
         account_to = transaction.get_accounts()[1]
@@ -240,6 +251,22 @@ class Budget:
         if charge == 0.00:
             raise BudgetError("Charge cannot be $0.00")
 
+        # Save the files
+        if len(transaction.get_files()) != len(file_data):
+            raise BudgetError("Mismatch between file names and data")
+        if len(transaction.get_files()) != 0:
+            path = "files/" + transaction.get_year() + "/" + transaction.get_month() + "/" + transaction.get_day() + "/"
+            if not os.path.isdir(path):
+                makedirs(path)
+
+            for name in transaction.get_files():
+                if os.path.isfile(path + "/" + name):
+                    raise BudgetError("File already exists")
+
+            for name, data in zip(transaction.get_files(), file_data):
+                with open(path + "/" + name, "w") as f:
+                    f.write(data)
+
         if account_from != "":
             account_from_balance = self.get_account_balance(account_from)
             account_from_balance -= charge
@@ -251,20 +278,38 @@ class Budget:
             self.__set_account_balance(account_to, account_to_balance)
 
         transaction_cmd_fmt = """
-        INSERT INTO history (id, account_from, charge, date, notes, account_to,
-        file_name, file_type, file_size, file_data) 
-        VALUES ({id}, "{account_from}", "{charge}", "{date}", "{notes}", "{account_to}",
-        "{file_name}", "{file_type}", "{file_size}", "{file_data}");
+        INSERT INTO history (id, account_from, charge, date, notes, account_to, files)
+        VALUES ({id}, "{account_from}", "{charge}", "{date}", "{notes}", "{account_to}", "{files}");
         """
 
         transaction_cmd = transaction_cmd_fmt.format(**transaction.as_dict())
         self.db_cursor.execute(transaction_cmd)
         self.db_conn.commit()
 
+    @staticmethod
+    def get_file(date, name):
+
+        date_str = date.strftime("%Y-%m-%d")
+        year = date_str.split("-")[0]
+        month = date_str.split("-")[1]
+        day = date_str.split("-")[2]
+
+        path = "files/" + year + "/" + month + "/" + day + "/" + name
+        if not os.path.isfile(path):
+            raise BudgetError("File does not exist")
+
+        with open(path, "r") as f:
+            file_data = f.read()
+
+        return file_data
+
     def archive(self):
         pass
 
     def export_ods(self):
+        pass
+
+    def undo_last(self):
         pass
 
 if __name__ == "__main__":
@@ -351,6 +396,16 @@ if __name__ == "__main__":
 
     print(b.list_accounts())
 
-    transactions = b.list_history_filter()
-    for transaction in transactions:
-        print(str(transaction))
+    # t = Transaction()
+    # _data = []
+    # with open("../March Rent Lake Village.pdf") as _f:
+    #     _data.append(_f.read())
+    # with open("../home-server-issues.txt") as _f:
+    #     _data.append(_f.read())
+    # t.from_new(1624.00, datetime.datetime(2018, 4, 1), account_from="Bank",
+    #            files="April (Fake) Rent Receipt.pdf, issues.txt")
+    # b.make_transaction(t, file_data=_data)
+
+    _transactions = b.list_history_filter()
+    for _transaction in _transactions:
+        print(str(_transaction))
