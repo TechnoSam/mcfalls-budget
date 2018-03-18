@@ -315,7 +315,6 @@ class AccountManager:
 
         self.db_cursor.execute(undo_cmd)
         result = self.db_cursor.fetchall()
-        print(result)
         undo_transaction = Transaction()
         undo_transaction.from_db(result[0])
 
