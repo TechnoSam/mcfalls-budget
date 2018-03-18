@@ -48,10 +48,9 @@ class Transaction:
     def get_charge(self):
         return self.data["charge"]
 
-    def set_charge(self, charge):
-        self.data["charge"] = charge
-
     def get_files(self):
+        if self.data["files"] == "":
+            return []
         return [x.strip() for x in self.data["files"].split(",")]
 
     def get_date(self):
@@ -83,7 +82,7 @@ class Transaction:
                   self.data["date"], self.data["files"], self.data["notes"])
 
 
-class Budget:
+class AccountManager:
 
     def __init__(self):
 
