@@ -309,13 +309,42 @@ class AccountManager:
         pass
 
     def undo_last(self):
-        pass
+        undo_cmd = """
+        SELECT * FROM history ORDER BY id DESC LIMIT 1
+        """
+
+        self.db_cursor.execute(undo_cmd)
+        result = self.db_cursor.fetchall()
+        print(result)
+        undo_transaction = Transaction()
+        undo_transaction.from_db(result[0])
+
+        account_from = undo_transaction.get_accounts()[0]
+        account_to = undo_transaction.get_accounts()[1]
+        charge = undo_transaction.get_charge()
+
+        if account_from != "":
+            account_from_balance = self.get_account_balance(account_from)
+            account_from_balance += charge
+            self.__set_account_balance(account_from, account_from_balance)
+
+        if account_to != "":
+            account_to_balance = self.get_account_balance(account_to)
+            account_to_balance -= charge
+            self.__set_account_balance(account_to, account_to_balance)
+
+        delete_cmd = """
+        DELETE FROM history ORDER BY id DESC LIMIT 1
+        """
+
+        self.db_cursor.execute(delete_cmd)
+        self.db_conn.commit()
 
 if __name__ == "__main__":
 
     print("Budget Unit Tests...")
 
-    b = Budget()
+    b = AccountManager()
     try:
         b.add_account("Bank", 0.00)
         b.add_account("Groceries", 0.00)
@@ -393,8 +422,6 @@ if __name__ == "__main__":
     except BudgetError as e:
         print(e)
 
-    print(b.list_accounts())
-
     # t = Transaction()
     # _data = []
     # with open("../March Rent Lake Village.pdf") as _f:
@@ -404,6 +431,10 @@ if __name__ == "__main__":
     # t.from_new(1624.00, datetime.datetime(2018, 4, 1), account_from="Bank",
     #            files="April (Fake) Rent Receipt.pdf, issues.txt")
     # b.make_transaction(t, file_data=_data)
+
+    b.undo_last()
+
+    print(b.list_accounts())
 
     _transactions = b.list_history_filter()
     for _transaction in _transactions:
