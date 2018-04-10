@@ -62,6 +62,7 @@ if __name__ == "__main__":
             elif cmd[0] == "list-history":
                 short_history = (cmd[1] == "-s") if len(cmd) > 1 else False
                 history = account_manager.list_history_filter()
+                history = sorted(history, key=lambda item: item.get_date())
                 for transaction in history:
                     print(transaction.as_string(short=short_history))
                 print("")
