@@ -35,7 +35,8 @@ if __name__ == "__main__":
             elif cmd[0] == "list-accounts":
                 accounts = account_manager.list_accounts()
                 print("\n".join(["%-20s %0.2f" % (x[0], x[1]) for x in accounts]))
-                print("")
+                print("------------------------------")
+                print("Total:               " + str(sum([float(x[1]) for x in accounts])))
 
             elif cmd[0] == "start-transaction":
                 state = "transaction"
@@ -66,7 +67,8 @@ if __name__ == "__main__":
 
             elif cmd[0] == "add-account":
                 try:
-                    account_manager.add_account(cmd[1], 0.00)
+                    new_account = " ".join(cmd[1:])
+                    account_manager.add_account(new_account, 0.00)
                 except Exception as e:
                     print("Failed to add account: " + e.message)
             else:
