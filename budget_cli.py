@@ -60,9 +60,10 @@ if __name__ == "__main__":
                 print("The current filter is <filter>")
 
             elif cmd[0] == "list-history":
+                short_history = (cmd[1] == "-s") if len(cmd) > 1 else False
                 history = account_manager.list_history_filter()
                 for transaction in history:
-                    print(str(transaction))
+                    print(transaction.as_string(short=short_history))
                 print("")
 
             elif cmd[0] == "add-account":

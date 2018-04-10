@@ -76,10 +76,15 @@ class Transaction:
     def as_dict(self):
         return self.data
 
-    def __str__(self):
-        return "id: %7s, account_from: %20s, account_to: %20s, charge: %7.2f, date: %s, files: %30s, notes: %s"\
-               % (self.data["id"], self.data["account_from"], self.data["account_to"], self.data["charge"],
-                  self.data["date"], self.data["files"], self.data["notes"])
+    def as_string(self, short=False):
+        if short:
+            return "%s from: %20s, to: %20s, $%7.2f, notes: %s" \
+                   % (self.data["date"], self.data["account_from"], self.data["account_to"],
+                      self.data["charge"], self.data["notes"])
+        else:
+            return "id: %7s, account_from: %20s, account_to: %20s, charge: %7.2f, date: %s, files: %30s, notes: %s" \
+                % (self.data["id"], self.data["account_from"], self.data["account_to"], self.data["charge"],
+                    self.data["date"], self.data["files"], self.data["notes"])
 
 
 class AccountManager:
@@ -437,4 +442,4 @@ if __name__ == "__main__":
 
     _transactions = b.list_history_filter()
     for _transaction in _transactions:
-        print(str(_transaction))
+        print(_transaction.as_string())
