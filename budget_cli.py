@@ -6,6 +6,7 @@ import budget
 if __name__ == "__main__":
 
     account_manager = budget.AccountManager()
+
     user_charge = 0
     user_date = ""
     user_account_from = ""
@@ -13,6 +14,14 @@ if __name__ == "__main__":
     user_notes = ""
     user_files = []
     user_file_data = []
+
+    filter_accounts = None
+    filter_from_to = None
+    filter_charge_begin = None
+    filter_charge_end = None
+    filter_date_begin = None
+    filter_date_end = None
+    filter_notes_contain = None
 
     commands = ["list-accounts", "filter", "list-history", "add-account <account>", "transaction"]
 
@@ -24,6 +33,9 @@ if __name__ == "__main__":
     while True:
         cmd = raw_input(prompt)
         cmd = cmd.split()
+
+        if len(cmd) == 0:
+            continue
 
         if state == "top":
             if cmd[0] == "help":
@@ -57,11 +69,18 @@ if __name__ == "__main__":
                 prompt = "McFalls Budget (filter) > "
 
             elif cmd[0] == "list-filter":
-                print("The current filter is <filter>")
+                print("Current filter:\nAccounts: %s\nFrom/To: %s\nCharge: [%s, %s]\nDate: [%s, %s]\nNotes: %s" %
+                      (filter_accounts, filter_from_to, filter_charge_begin, filter_charge_end, filter_date_begin,
+                       filter_date_end, filter_notes_contain))
 
             elif cmd[0] == "list-history":
                 short_history = (cmd[1] == "-s") if len(cmd) > 1 else False
-                history = account_manager.list_history_filter()
+                history = account_manager.list_history_filter(accounts=filter_accounts, from_to=filter_from_to,
+                                                              charge_begin=filter_charge_begin,
+                                                              charge_end=filter_charge_end,
+                                                              date_begin=filter_date_begin,
+                                                              date_end=filter_date_end,
+                                                              notes_contains=filter_notes_contain)
                 history = sorted(history, key=lambda item: item.get_date())
                 for transaction in history:
                     print(transaction.as_string(short=short_history))
@@ -180,8 +199,110 @@ if __name__ == "__main__":
                 prompt = default_prompt
 
         elif state == "filter":
-            if cmd[0] == "lt":
-                print("Filter added less than %s" % cmd[1])
+            if cmd[0] == "add_account":
+                if len(cmd) < 2:
+                    print("No account given")
+                    continue
+                if filter_accounts is None:
+                    filter_accounts = []
+                filter_accounts.append(" ".join(cmd[1:]))
+                print("Set account to %s" % filter_accounts)
+
+            if cmd[0] == "clear_accounts":
+                filter_accounts = None
+                print("Cleared accounts")
+
+            if cmd[0] == "from-to":
+                if len(cmd) < 2:
+                    print("No state given")
+                    continue
+                if cmd[1] == "from":
+                    filter_from_to = "from"
+                elif cmd[1] == "to":
+                    filter_from_to = "to"
+                elif cmd[1] == "none":
+                    filter_from_to = None
+                else:
+                    print("Invalid state")
+                print("From_to state: %s" % filter_from_to)
+
+            if cmd[0] == "charge-begin":
+                if len(cmd) < 2:
+                    print("No charge given")
+                    continue
+                if cmd[1] == "none":
+                    filter_charge_begin = None
+                    print("Cleared charge begin")
+                else:
+                    try:
+                        filter_charge_begin = float(cmd[1])
+                        print("Set charge begin to %s" % filter_charge_begin)
+                    except Exception as e:
+                        print(e.message)
+                        continue
+
+            if cmd[0] == "charge-end":
+                if len(cmd) < 2:
+                    print("No charge given")
+                    continue
+                if cmd[1] == "none":
+                    filter_charge_end = None
+                    print("Cleared charge end")
+                else:
+                    try:
+                        filter_charge_end = float(cmd[1])
+                        print("Set charge end to %s" % filter_charge_end)
+                    except Exception as e:
+                        print(e.message)
+                        continue
+
+            if cmd[0] == "date-begin":
+                if len(cmd) < 2:
+                    print("No date given")
+                    continue
+                if cmd[1] == "none":
+                    filter_date_begin = None
+                    print("Cleared date begin")
+                else:
+                    try:
+                        filter_date_begin = datetime.datetime.strptime(cmd[1], "%Y-%m-%d")
+                        print("Set date begin to %s" % filter_date_begin.strftime("%Y-%m-%d"))
+                    except Exception as e:
+                        print(e.message)
+                        continue
+
+            if cmd[0] == "date-end":
+                if len(cmd) < 2:
+                    print("No date given")
+                    continue
+                if cmd[1] == "none":
+                    filter_date_end = None
+                    print("Cleared date end")
+                else:
+                    try:
+                        filter_date_end = datetime.datetime.strptime(cmd[1], "%Y-%m-%d")
+                        print("Set date end to %s" % filter_date_end.strftime("%Y-%m-%d"))
+                    except Exception as e:
+                        print(e.message)
+                        continue
+
+            if cmd[0] == "notes":
+                if len(cmd) < 2:
+                    print("No notes given")
+                    continue
+                if cmd[1] == "none":
+                    filter_notes_contain = None
+                    print("Cleared notes")
+                else:
+                    filter_notes_contain = " ".join(cmd[1:])
+                    print("Notes set to: " + filter_notes_contain)
+
+            if cmd[0] == "list":
+                print("Current filter:\nAccounts: %s\nFrom/To: %s\nCharge: [%s, %s]\nDate: [%s, %s]\nNotes: %s" %
+                      (filter_accounts, filter_from_to, filter_charge_begin, filter_charge_end,
+                       filter_date_begin.strftime("%Y-%m-%d") if filter_date_begin else "None",
+                       filter_date_end.strftime("%Y-%m-%d") if filter_date_end else "None",
+                       filter_notes_contain))
 
             if cmd[0] == "commit":
                 print("Finished filter")
