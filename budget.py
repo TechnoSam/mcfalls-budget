@@ -344,6 +344,77 @@ class AccountManager:
         self.db_cursor.execute(delete_cmd)
         self.db_conn.commit()
 
+    def edit_transaction(self, t_id, charge=None, date=None, notes=None):
+
+        edit_q_fmt = "SELECT * FROM history WHERE id = {id}"
+
+        edit_q = edit_q_fmt.format(id=t_id)
+
+        self.db_cursor.execute(edit_q)
+        result = self.db_cursor.fetchall()
+
+        edit_cmd = "UPDATE history "
+
+        edit = False
+
+        if charge is not None:
+            edit = True
+            try:
+                tmp = float(charge)
+            except Exception as e:
+                raise BudgetError("Could not edit transaction: " + e.message)
+            edit_cmd += "SET \"charge\" = \"%s\" " % str(float(charge))
+
+        if date is not None:
+            if not edit:
+                edit_cmd += "SET "
+            else:
+                edit_cmd += ","
+            edit = True
+            try:
+                tmp = date.strftime("%Y-%m-%d")
+            except Exception as e:
+                raise BudgetError("Could not edit transaction: " + e.message)
+            edit_cmd += "\"date\" = \"%s\" " % date.strftime("%Y-%m-%d")
+
+        if notes is not None:
+            if not edit:
+                edit_cmd += "SET "
+            else:
+                edit_cmd += ","
+            edit = True
+            edit_cmd += "\"notes\" = \"%s\" " % notes
+
+        if not edit:
+            raise BudgetError("No change in edit")
+
+        edit_cmd += "WHERE \"id\" = \"%s\";" % t_id
+
+        self.db_cursor.execute(edit_cmd)
+        self.db_conn.commit()
+
+        if charge is not None:
+            # Undo and Reapply
+            undo_transaction = Transaction()
+            undo_transaction.from_db(result[0])
+
+            account_from = undo_transaction.get_accounts()[0]
+            account_to = undo_transaction.get_accounts()[1]
+            undo_charge = undo_transaction.get_charge()
+
+            if account_from != "":
+                account_from_balance = self.get_account_balance(account_from)
+                account_from_balance += undo_charge
+                account_from_balance -= charge
+                self.__set_account_balance(account_from, account_from_balance)
+
+            if account_to != "":
+                account_to_balance = self.get_account_balance(account_to)
+                account_to_balance -= undo_charge
+                account_to_balance += charge
+                self.__set_account_balance(account_to, account_to_balance)
+
+
 if __name__ == "__main__":
 
     print("Budget Unit Tests...")
@@ -436,7 +507,9 @@ if __name__ == "__main__":
     #            files="April (Fake) Rent Receipt.pdf, issues.txt")
     # b.make_transaction(t, file_data=_data)
 
-    b.undo_last()
+    # b.undo_last()
+
+    b.edit_transaction(16, charge=139.99, date=datetime.datetime(2017, 2, 5), notes="Kate Spade Purse v2")
 
     print(b.list_accounts())
 
