@@ -353,6 +353,9 @@ class AccountManager:
         self.db_cursor.execute(edit_q)
         result = self.db_cursor.fetchall()
 
+        if len(result) < 1:
+            raise BudgetError("No such transaction")
+
         edit_cmd = "UPDATE history "
 
         edit = False

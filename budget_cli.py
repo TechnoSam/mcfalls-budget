@@ -92,6 +92,70 @@ if __name__ == "__main__":
                     account_manager.add_account(new_account, 0.00)
                 except Exception as e:
                     print("Failed to add account: " + e.message)
+
+            elif cmd[0] == "edit-charge":
+                if len(cmd) < 3:
+                    print("usage: edit-charge <id> <charge>")
+                    continue
+                try:
+                    t_id = int(cmd[1])
+                except Exception as e:
+                    print("Invalid id: " + e.message)
+                    continue
+
+                try:
+                    charge = float(cmd[2])
+                except Exception as e:
+                    print("Invalid charge: " + e.message)
+                    continue
+
+                try:
+                    account_manager.edit_transaction(t_id, charge=charge)
+                except Exception as e:
+                    print("Failed to edit transaction: " + e.message)
+                    continue
+
+            elif cmd[0] == "edit-date":
+                if len(cmd) < 3:
+                    print("usage: edit-date <id> <YYYY-MM-DD>")
+                    continue
+                try:
+                    t_id = int(cmd[1])
+                except Exception as e:
+                    print("Invalid id: " + e.message)
+                    continue
+
+                try:
+                    date = datetime.datetime.strptime(cmd[2], "%Y-%m-%d")
+                except Exception as e:
+                    print("Invalid date: " + e.message)
+                    continue
+
+                try:
+                    account_manager.edit_transaction(t_id, date=date)
+                except Exception as e:
+                    print("Failed to edit transaction: " + e.message)
+                    continue
+
+            elif cmd[0] == "edit-notes":
+                if len(cmd) < 3:
+                    print("usage: edit-notes <id> <notes>")
+                    continue
+
+                try:
+                    t_id = int(cmd[1])
+                except Exception as e:
+                    print("Invalid id: " + e.message)
+                    continue
+
+                notes = " ".join(cmd[2:])
+
+                try:
+                    account_manager.edit_transaction(t_id, notes=notes)
+                except Exception as e:
+                    print("Failed to edit transaction: " + e.message)
+                    continue
+
             else:
                 print("Unrecognized command: %s" % cmd[0])
 
