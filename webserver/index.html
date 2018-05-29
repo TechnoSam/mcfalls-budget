@@ -10,10 +10,13 @@
 <div id="account_table_div" class="inline">
     <h2>Accounts</h2>
     <table id="accounts_table">
-        <tr>
-            <th class="account_cell">Account</th>
-            <th>Balance</th>
-        </tr>
+        <thead>
+            <tr>
+                <th class="account_cell">Account</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody id="account_table_body"></tbody>
     </table>
 </div>
 <div id="other" class="right_panel">
@@ -21,7 +24,7 @@
     <div id="transaction">
         <h3>Transaction</h3>
         <label class="inline">Date</label>
-        <input id="transaction_date_input" class="inline">
+        <input id="transaction_date" class="inline">
         <label class="inline">Charge</label>
         <input id="transaction_charge" class="inline">
         <label class="inline">Account From</label>
@@ -48,18 +51,22 @@
         <input id="filter_charge_end" class="inline">
         <label class="inline">Notes Contain</label>
         <input id="filter_notes_contain" class="inline">
+        <button id="refresh_btn" class="inline">Refresh View</button>
     </div>
     <div id="history_table_div">
         <h3>History</h3>
     <table id="history_table" class="history_table">
-        <tr>
-            <th>ID</th>
-            <th>Date</th>
-            <th>Account From</th>
-            <th>Account To</th>
-            <th>Charge</th>
-            <th>Notes</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Account From</th>
+                <th>Account To</th>
+                <th>Charge</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody id="history_table_body"></tbody>
     </table>
     </div>
 </div>

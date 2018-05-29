@@ -1,8 +1,6 @@
 
 window.onload = function() {
 
-    console.log("Initialized")
-
     Array.prototype.sortOn = function(key){
         this.sort(function(a, b){
             if(a[key] < b[key]){
@@ -14,13 +12,42 @@ window.onload = function() {
         });
     }
 
+    document.getElementById("refresh_btn").onclick = function() { refreshAccounts(); refreshHistory(); };
+    document.getElementById("make_transaction_btn").onclick = function() { makeTransaction(); };
+
+    refreshAccounts();
+    refreshHistory();
+
+}
+
+function makeTransaction() {
+
+    var date = document.getElementById("transaction_date").value
+
+    var transaction_xhttp = new XMLHttpRequest();
+
+    transaction_xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log("Successfully Completed Transaction")
+        }
+    };
+
+    refreshAccounts();
+    refreshHistory();
+
+}
+
+function refreshAccounts() {
+
     var accounts_xhttp = new XMLHttpRequest();
 
     accounts_xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var resp = JSON.parse(this.responseText);
-            console.log(resp);
-            var accountsTable = document.getElementById("accounts_table");
+
+
+            var newAccountTable = document.createElement("tbody");
+            newAccountTable.id = "account_table_body";
             var i;
             for (i = 0; i < resp["accounts"].length; i++) {
                 var newRow = document.createElement("tr");
@@ -32,20 +59,27 @@ window.onload = function() {
                 newBalance.className = "account_cell"
                 newBalance.innerHTML = "$" + resp["accounts"][i][1];
                 newRow.appendChild(newBalance);
-                accountsTable.appendChild(newRow);
+                newAccountTable.appendChild(newRow);
             }
+
+            var oldAccountTable = document.getElementById("account_table_body");
+            oldAccountTable.parentNode.replaceChild(newAccountTable, oldAccountTable);
         }
     };
     accounts_xhttp.open("GET", "accounts", true);
     accounts_xhttp.send();
+
+}
+
+function refreshHistory() {
 
     var history_xhttp = new XMLHttpRequest();
 
     history_xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var resp = JSON.parse(this.responseText);
-            console.log(resp);
-            var historyTable = document.getElementById("history_table");
+            var newHistoryTable = document.createElement("tbody");
+            newHistoryTable.id = "history_table_body";
             var history = resp["history"];
             history.sortOn("date");
             var i;
@@ -83,8 +117,11 @@ window.onload = function() {
                 newNotes.innerHTML = record["notes"];
                 newRow.appendChild(newNotes);
 
-                historyTable.appendChild(newRow);
+                newHistoryTable.appendChild(newRow);
             }
+
+            var oldHistoryTable = document.getElementById("history_table_body");
+            oldHistoryTable.parentNode.replaceChild(newHistoryTable, oldHistoryTable);
         }
     };
     history_xhttp.open("GET", "history", true);
