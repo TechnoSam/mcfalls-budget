@@ -73,6 +73,13 @@ function refreshAccounts() {
 
 function refreshHistory() {
 
+    var params = {};
+
+    var accounts_value = document.getElementById("filter_accounts").value;
+    if (accounts_value !== "") {
+        params["accounts"] = accounts_value;
+    }
+
     var history_xhttp = new XMLHttpRequest();
 
     history_xhttp.onreadystatechange = function() {
@@ -124,7 +131,22 @@ function refreshHistory() {
             oldHistoryTable.parentNode.replaceChild(newHistoryTable, oldHistoryTable);
         }
     };
-    history_xhttp.open("GET", "history", true);
+    history_xhttp.open("GET", "history?" + serialize(params), true);
     history_xhttp.send();
 
+}
+
+function serialize(obj, prefix) {
+  var str = [],
+    p;
+  for (p in obj) {
+    if (obj.hasOwnProperty(p)) {
+      var k = prefix ? prefix + "[" + p + "]" : p,
+        v = obj[p];
+      str.push((v !== null && typeof v === "object") ?
+        serialize(v, k) :
+        encodeURIComponent(k) + "=" + encodeURIComponent(v));
+    }
+  }
+  return str.join("&");
 }

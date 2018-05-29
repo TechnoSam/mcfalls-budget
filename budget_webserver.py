@@ -80,7 +80,7 @@ class BudgetHTTPRequestHandler(BaseHTTPRequestHandler):
             filter_notes_contain = None
 
             if "accounts" in query_params:
-                filter_accounts = query_params["accounts"][0].split(",")
+                filter_accounts = [x.strip() for x in query_params["accounts"][0].split(",")]
             if "from_to" in query_params:
                 filter_from_to = query_params["from_to"][0]
             if "charge_begin" in query_params:
