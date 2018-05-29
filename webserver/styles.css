@@ -1,0 +1,39 @@
+
+table {
+    border-collapse:collapse;
+    border:1px solid #000000;
+}
+
+table td {
+    border:1px solid #000000;
+}
+
+.inline {
+    display: inline-block
+}
+
+.right_panel {
+    display: inline-block;
+    vertical-align: top;
+    width: 1200px;
+}
+
+.account_cell {
+    width: 5em;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.history_cell {
+    *width: 10em;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.history_table {
+    display: block;
+    height: 500px;
+    overflow-y: scroll;
+}
+
+

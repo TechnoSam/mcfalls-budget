@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="main.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>McFalls Budget</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<h1>McFalls Budget</h1>
+<div id="account_table_div" class="inline">
+    <h2>Accounts</h2>
+    <table id="accounts_table">
+        <tr>
+            <th class="account_cell">Account</th>
+            <th>Balance</th>
+        </tr>
+    </table>
+</div>
+<div id="other" class="right_panel">
+    <h2>Other</h2>
+    <div id="transaction">
+        <h3>Transaction</h3>
+        <label class="inline">Date</label>
+        <input id="transaction_date_input" class="inline">
+        <label class="inline">Charge</label>
+        <input id="transaction_charge" class="inline">
+        <label class="inline">Account From</label>
+        <select id="transaction_account_from" class="inline"></select>
+        <label class="inline">Account To</label>
+        <select id="transaction_account_to" class="inline"></select>
+        <label class="inline">Notes</label>
+        <input id="transaction_notes" class="inline">
+        <button id="make_transaction_btn" class="inline">Make Transaction</button>
+    </div>
+    <div id="filter">
+        <h3>Filter</h3>
+        <label class="inline">Accounts</label>
+        <input id="filter_accounts" class="inline">
+        <label class="inline">From/To</label>
+        <select id="filter_from_to" class="inline"></select>
+        <label class="inline">Date Begin</label>
+        <input id="filter_date_begin" class="inline">
+        <label class="inline">Date End</label>
+        <input id="filter_date_end" class="inline">
+        <label class="inline">Charge Begin</label>
+        <input id="filter_charge_begin" class="inline">
+        <label class="inline">Charge End</label>
+        <input id="filter_charge_end" class="inline">
+        <label class="inline">Notes Contain</label>
+        <input id="filter_notes_contain" class="inline">
+    </div>
+    <div id="history_table_div">
+        <h3>History</h3>
+    <table id="history_table" class="history_table">
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Account From</th>
+            <th>Account To</th>
+            <th>Charge</th>
+            <th>Notes</th>
+        </tr>
+    </table>
+    </div>
+</div>
+<body>
+
+</body>
+</html>
