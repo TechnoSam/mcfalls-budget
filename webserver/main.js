@@ -33,7 +33,46 @@ window.onload = function() {
 
 function makeTransaction() {
 
-    var date = document.getElementById("transaction_date").value
+    var params = {};
+
+    var date_value = document.getElementById("transaction_date").value;
+    if (date_value !== "") {
+        params["date"] = date_value;
+    }
+    else {
+        alert("Date cannot be empty");
+        return;
+    }
+
+    var charge_value = document.getElementById("transaction_charge").value;
+    if (charge_value !== "") {
+        params["charge"] = charge_value;
+    }
+    else {
+        alert("Charge cannot be empty");
+        return;
+    }
+
+    var account_from_value = document.getElementById("transaction_account_from").value;
+    var account_to_value = document.getElementById("transaction_account_to").value;
+
+    if (account_from_value === "None" && account_to_value === "None") {
+        alert("Both account from and to cannot both be None");
+        return;
+    }
+
+    if (account_from_value !== "None") {
+        params["account_from"] = account_from_value;
+    }
+
+    if (account_to_value !== "None") {
+        params["account_to"] = account_to_value;
+    }
+
+    var notes_value = document.getElementById("transaction_notes").value;
+    if (notes_value !== "") {
+        params["notes"] = notes_value;
+    }
 
     var transaction_xhttp = new XMLHttpRequest();
 
@@ -43,6 +82,14 @@ function makeTransaction() {
         }
     };
 
+    transaction_xhttp.open("POST", "transaction", true);
+    transaction_xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    transaction_xhttp.send(serialize(params));
+
+    document.getElementById("transaction_date").value = "";
+    document.getElementById("transaction_charge").value = "";
+    document.getElementById("transaction_notes").value = "";
+
     refreshAccounts();
     refreshHistory();
 
@@ -50,12 +97,29 @@ function makeTransaction() {
 
 function refreshAccounts() {
 
+    var account_from_box = document.getElementById("transaction_account_from");
+    for (var i = account_from_box.options.length - 1; i >=0; i--) {
+        account_from_box.remove(i);
+    }
+
+    var account_to_box = document.getElementById("transaction_account_to");
+    for (var i = account_to_box.options.length - 1; i >=0; i--) {
+        account_to_box.remove(i);
+    }
+
+    var none_from = document.createElement("option");
+    none_from.text = none_from.value = "None";
+    account_from_box.add(none_from, 0);
+
+    var none_to = document.createElement("option");
+    none_to.text = none_to.value = "None";
+    account_to_box.add(none_to, 0);
+
     var accounts_xhttp = new XMLHttpRequest();
 
     accounts_xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var resp = JSON.parse(this.responseText);
-
 
             var newAccountTable = document.createElement("tbody");
             newAccountTable.id = "account_table_body";
@@ -71,6 +135,14 @@ function refreshAccounts() {
                 newBalance.innerHTML = "$" + resp["accounts"][i][1];
                 newRow.appendChild(newBalance);
                 newAccountTable.appendChild(newRow);
+
+                var from_option = document.createElement("option")
+                from_option.text = from_option.value = resp["accounts"][i][0];
+                account_from_box.add(from_option);
+
+                var to_option = document.createElement("option")
+                to_option.text = to_option.value = resp["accounts"][i][0];
+                account_to_box.add(to_option);
             }
 
             var oldAccountTable = document.getElementById("account_table_body");

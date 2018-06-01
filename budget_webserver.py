@@ -7,7 +7,6 @@ import datetime
 
 BASE_WEB_DIR = "webserver/"
 
-
 class BudgetHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def __init__(self, request, client_address, server):
@@ -113,7 +112,45 @@ class BudgetHTTPRequestHandler(BaseHTTPRequestHandler):
         return
 
     def do_POST(self):
-        pass
+
+        parsed_url = urlparse.urlparse(self.path)
+        url_path = parsed_url.path.split("/")
+
+        length = int(self.headers.getheader('content-length'))
+        field_data = self.rfile.read(length)
+        params = urlparse.parse_qs(field_data)
+
+        if url_path[1] == "transaction":
+            user_charge = 0
+            user_date = ""
+            user_account_from = ""
+            user_account_to = ""
+            user_notes = ""
+            user_files = []
+            user_file_data = []
+
+            if "charge" in params:
+                user_charge = float(params["charge"][0])
+            if "date" in params:
+                user_date = datetime.datetime.strptime(params["date"][0], "%Y-%m-%d")
+            if "account_from" in params:
+                user_account_from = params["account_from"][0]
+            if "account_to" in params:
+                user_account_to = params["account_to"][0]
+            if "notes" in params:
+                user_notes = params["notes"][0]
+
+            try:
+                new_transaction = budget.Transaction()
+                new_transaction.from_new(user_charge, user_date, user_account_from, user_account_to,
+                                         user_notes, ",".join(user_files))
+                self.manager = budget.AccountManager()
+                self.manager.make_transaction(new_transaction, user_file_data)
+            except Exception as e:
+                print("Failed to commit transaction: " + e.message)
+                return
+
+            self.send_response(200)
 
     def error(self, msg=""):
         self.send_error(500, msg)
