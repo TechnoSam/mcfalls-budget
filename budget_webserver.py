@@ -27,7 +27,7 @@ class BudgetHTTPRequestHandler(BaseHTTPRequestHandler):
             # Root
             self.send_response(200)
 
-            self.send_header('Content-type', 'text-html')
+            self.send_header('Content-type', 'text/html')
             self.end_headers()
 
             with open(BASE_WEB_DIR + "index.html", "r") as f:
@@ -38,7 +38,7 @@ class BudgetHTTPRequestHandler(BaseHTTPRequestHandler):
             # JS file
             self.send_response(200)
 
-            self.send_header('Content-type', 'text-javascript')
+            self.send_header('Content-type', 'text/javascript')
             self.end_headers()
 
             with open(BASE_WEB_DIR + url_path[1], "r") as f:
@@ -49,7 +49,7 @@ class BudgetHTTPRequestHandler(BaseHTTPRequestHandler):
             # CSS file
             self.send_response(200)
 
-            self.send_header('Content-type', 'text-css')
+            self.send_header('Content-type', 'text/css')
             self.end_headers()
 
             with open(BASE_WEB_DIR + url_path[1], "r") as f:
