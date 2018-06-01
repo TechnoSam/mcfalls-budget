@@ -91,6 +91,36 @@ function refreshHistory() {
         params["accounts"] = accounts_value;
     }
 
+    var from_to_value = document.getElementById("filter_from_to").value;
+    if (from_to_value !== "none") {
+        params["from_to"] = from_to_value;
+    }
+
+    var date_begin_value = document.getElementById("filter_date_begin").value;
+    if (date_begin_value !== "") {
+        params["date_begin"] = date_begin_value;
+    }
+
+    var date_end_value = document.getElementById("filter_date_end").value;
+    if (date_end_value !== "") {
+        params["date_end"] = date_end_value;
+    }
+
+     var charge_begin_value = document.getElementById("filter_charge_begin").value;
+    if (charge_begin_value !== "") {
+        params["charge_begin"] = charge_begin_value;
+    }
+
+    var charge_end_value = document.getElementById("filter_charge_end").value;
+    if (charge_end_value !== "") {
+        params["charge_end"] = charge_end_value;
+    }
+
+    var notes_contain_value = document.getElementById("filter_notes_contain").value;
+    if (notes_contain_value !== "") {
+        params["notes_contain"] = notes_contain_value;
+    }
+
     var history_xhttp = new XMLHttpRequest();
 
     history_xhttp.onreadystatechange = function() {
