@@ -1,11 +1,22 @@
 
 window.onload = function() {
 
-    Array.prototype.sortOn = function(key){
+    Array.prototype.sortOnAscending = function(key){
         this.sort(function(a, b){
             if(a[key] < b[key]){
                 return -1;
             }else if(a[key] > b[key]){
+                return 1;
+            }
+            return 0;
+        });
+    }
+
+    Array.prototype.sortOnDescending = function(key){
+        this.sort(function(a, b){
+            if(a[key] > b[key]){
+                return -1;
+            }else if(a[key] < b[key]){
                 return 1;
             }
             return 0;
@@ -88,7 +99,7 @@ function refreshHistory() {
             var newHistoryTable = document.createElement("tbody");
             newHistoryTable.id = "history_table_body";
             var history = resp["history"];
-            history.sortOn("date");
+            history.sortOnDescending("date");
             var i;
             for (i = 0; i < history.length; i++) {
                 record = history[i];
